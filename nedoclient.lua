@@ -126,7 +126,17 @@ end
 --локальные сообщения
 local function addMessage(messageList, text, color)
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -10, 0, 18)
+    local indx
+    if #text < 30 then
+        label.Size = UDim2.new(1, -10, 0, 18)
+        indx = 18
+    elseif #text > 30 and #text < 60 then
+        label.Size = UDim2.new(1, -10, 0, 36)
+        indx = 36
+    elseif #text > 60 then
+        label.Size = UDim2.new(1, -10, 0, 54)
+        indx = 54
+    end
     label.BackgroundTransparency = 1
     label.Text = text
     label.TextColor3 = color or Color3.fromRGB(255, 255, 255)
@@ -137,7 +147,7 @@ local function addMessage(messageList, text, color)
     label.RichText = false
     label.Parent = messageList
 
-    messageList.CanvasSize = UDim2.new(0, 0, 0, messageList.CanvasSize.Y.Offset + 20)
+    messageList.CanvasSize = UDim2.new(0, 0, 0, messageList.CanvasSize.Y.Offset + (indx + 2))
     messageList.CanvasPosition = Vector2.new(0, math.max(0, messageList.CanvasSize.Y.Offset - messageList.AbsoluteSize.Y))
 end
 
@@ -202,7 +212,7 @@ local function startChat()
 
     addMessage(messageList, "Чат работает на костылях и на бесплатном хостинге серверов, подключение может занять минуту...", Color3.fromRGB(128, 128, 128))
 
-    successs,response = pcall(function()
+    success,response = pcall(function()
         httpRequest(SERVER_URL .. "/join", "POST", {
             userId = userId,
             name = playerName
