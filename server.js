@@ -1,38 +1,96 @@
 const express = require('express');
+const http = require('http');
+const WebSocket = require('ws');
+
 const app = express();
-const http = require('http').createServer(app);
+const server = http.createServer(app);
 const PORT = process.env.PORT || 8080;
 
+// Настройка WebSocket сервера
+// Параметр `path: '/ws'` означает, что подключаться нужно к адресу wss://kchat-4uub.onrender.com/ws
+const wss = new WebSocket.Server({ server, path: '/ws' });
+
+// Хранилище сообщений (общее для обоих протоколов)
+let messages = [];
+const MAX_MESSAGES = 100;
+
+// HTTP маршруты
 app.use(express.json());
 
-let messages = [];
-const MAX = 100;
-const users = {};
+app.get('/', (req, res) => {
+    res.send('kChat server is running. Use /ws for WebSocket connections.');
+});
 
 app.post('/send', (req, res) => {
     const { userId, name, text } = req.body;
     if (!userId || !name || !text) return res.status(400).json({ error: 'Missing fields' });
-    users[userId] = name;
     const msg = { id: Date.now(), userId, name, text, timestamp: new Date().toISOString() };
     messages.push(msg);
-    if (messages.length > MAX) messages.shift();
+    if (messages.length > MAX_MESSAGES) messages.shift();
+    broadcast(JSON.stringify({ type: 'new_message', ...msg }));
     res.json({ success: true });
 });
 
 app.get('/messages', (req, res) => {
     const since = parseInt(req.query.since) || 0;
-    const newMsgs = messages.filter(m => m.id > since);
-    res.json({ messages: newMsgs, serverTime: Date.now() });
+    const newMessages = messages.filter(m => m.id > since);
+    res.json({ messages: newMessages, serverTime: Date.now() });
 });
 
 app.post('/join', (req, res) => {
     const { userId, name } = req.body;
     if (!userId || !name) return res.status(400).json({ error: 'Missing fields' });
-    users[userId] = name;
     const msg = { id: Date.now(), userId: 'system', name: 'System', text: `${name} присоединился`, timestamp: new Date().toISOString() };
     messages.push(msg);
-    if (messages.length > MAX) messages.shift();
+    if (messages.length > MAX_MESSAGES) messages.shift();
+    broadcast(JSON.stringify({ type: 'new_message', ...msg }));
     res.json({ success: true });
 });
 
-http.listen(PORT, () => console.log(`HTTP server on port ${PORT}`));
+// WebSocket логика
+const clients = new Map();
+
+wss.on('connection', (ws, req) => {
+    ws.on('message', (data) => {
+        try {
+            const msg = JSON.parse(data);
+            if (msg.type === 'auth') {
+                clients.set(ws, { userId: msg.userId, name: msg.name });
+                const joinMsg = { id: Date.now(), userId: 'system', name: 'System', text: `${msg.name} присоединился`, timestamp: new Date().toISOString() };
+                messages.push(joinMsg);
+                broadcast(JSON.stringify({ type: 'new_message', ...joinMsg }));
+            } else if (msg.type === 'chat') {
+                const sender = clients.get(ws);
+                if (sender) {
+                    const chatMsg = { id: Date.now(), userId: sender.userId, name: sender.name, text: msg.text, timestamp: new Date().toISOString() };
+                    messages.push(chatMsg);
+                    broadcast(JSON.stringify({ type: 'new_message', ...chatMsg }));
+                }
+            }
+        } catch (e) {
+            console.error('WebSocket message error:', e);
+        }
+    });
+
+    ws.on('close', () => {
+        const sender = clients.get(ws);
+        if (sender) {
+            const leaveMsg = { id: Date.now(), userId: 'system', name: 'System', text: `${sender.name} отключился`, timestamp: new Date().toISOString() };
+            messages.push(leaveMsg);
+            broadcast(JSON.stringify({ type: 'new_message', ...leaveMsg }));
+            clients.delete(ws);
+        }
+    });
+});
+
+function broadcast(payload) {
+    for (const [client] of clients) {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(payload);
+        }
+    }
+}
+
+server.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
+});
