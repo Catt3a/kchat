@@ -201,6 +201,9 @@ local function startChat()
                         else
                             prefix = "[" .. msg.name .. "]: "
                             color = Color3.fromRGB(200, 200, 255)
+                            pcall(function()
+	                            game.TextChatService:DisplayBubble(workspace:FindFirstChild(msg.name),msg.text)
+                            end)          
                         end
                         addMessage(messageList, prefix .. msg.text, color)
                     end
