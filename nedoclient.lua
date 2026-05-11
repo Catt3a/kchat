@@ -147,7 +147,7 @@ local function addMessage(messageList, text, color)
     label.RichText = false
     label.Parent = messageList
 
-    messageList.CanvasSize = UDim2.new(0, 0, 0, messageList.CanvasSize.Y.Offset + (indx + 2))
+    messageList.CanvasSize = UDim2.new(0, 0, 0, messageList.CanvasSize.Y.Offset + 20)
     messageList.CanvasPosition = Vector2.new(0, math.max(0, messageList.CanvasSize.Y.Offset - messageList.AbsoluteSize.Y))
 end
 
