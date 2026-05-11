@@ -3,7 +3,7 @@
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
-
+local TextService = game:GetService("TextService")
 local SERVER_URL = "https://kchat-4uub.onrender.com" -- если ты сольёшь этот url роскомнадзору...
 local POLL_INTERVAL = 1.35  -- кд проверки сообщений
 
@@ -126,17 +126,6 @@ end
 --локальные сообщения
 local function addMessage(messageList, text, color)
     local label = Instance.new("TextLabel")
-    local indx
-    if #text < 30 then
-        label.Size = UDim2.new(1, -10, 0, 18)
-        indx = 18
-    elseif #text > 30 and #text < 60 then
-        label.Size = UDim2.new(1, -10, 0, 36)
-        indx = 36
-    elseif #text > 60 then
-        label.Size = UDim2.new(1, -10, 0, 54)
-        indx = 54
-    end
     label.BackgroundTransparency = 1
     label.Text = text
     label.TextColor3 = color or Color3.fromRGB(255, 255, 255)
@@ -146,8 +135,18 @@ local function addMessage(messageList, text, color)
     label.TextWrapped = true
     label.RichText = false
     label.Parent = messageList
-
-    messageList.CanvasSize = UDim2.new(0, 0, 0, messageList.CanvasSize.Y.Offset + 20)
+    local padding = 10
+    local maxWidth = messageList.AbsoluteSize.X - padding
+    if maxWidth <= 0 then maxWidth = 300 end
+    local textSize = TextService:GetTextSize(
+        text,
+        14,
+        Enum.Font.SourceSans,
+        Vector2.new(maxWidth, math.huge)
+    )
+    label.Size = UDim2.new(1, -padding, 0, textSize.Y + 2)
+    local spacing = 2 
+    messageList.CanvasSize = UDim2.new(0, 0, 0, messageList.CanvasSize.Y.Offset + textSize.Y + spacing + 2)
     messageList.CanvasPosition = Vector2.new(0, math.max(0, messageList.CanvasSize.Y.Offset - messageList.AbsoluteSize.Y))
 end
 
