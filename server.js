@@ -6,19 +6,15 @@ const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 8080;
 
-// Настройка WebSocket сервера
-// Параметр `path: '/ws'` означает, что подключаться нужно к адресу wss://kchat-4uub.onrender.com/ws
 const wss = new WebSocket.Server({ server, path: '/ws' });
 
-// Хранилище сообщений (общее для обоих протоколов)
 let messages = [];
 const MAX_MESSAGES = 100;
 
-// HTTP маршруты
 app.use(express.json());
 
 app.get('/', (req, res) => {
-    res.send('kChat server is running. Use /ws for WebSocket connections.');
+    res.send('Сервер kChat запущен и должен работать');
 });
 
 app.post('/send', (req, res) => {
@@ -40,14 +36,13 @@ app.get('/messages', (req, res) => {
 app.post('/join', (req, res) => {
     const { userId, name } = req.body;
     if (!userId || !name) return res.status(400).json({ error: 'Missing fields' });
-    const msg = { id: Date.now(), userId: 'system', name: 'System', text: `${name} присоединился`, timestamp: new Date().toISOString() };
+    const msg = { id: Date.now(), userId: 'system', name: 'System', text: `${name}, дарова!`, timestamp: new Date().toISOString() };
     messages.push(msg);
     if (messages.length > MAX_MESSAGES) messages.shift();
     broadcast(JSON.stringify({ type: 'new_message', ...msg }));
     res.json({ success: true });
 });
 
-// WebSocket логика
 const clients = new Map();
 
 wss.on('connection', (ws, req) => {
@@ -68,7 +63,7 @@ wss.on('connection', (ws, req) => {
                 }
             }
         } catch (e) {
-            console.error('WebSocket message error:', e);
+            console.error('ошибка:', e);
         }
     });
 
@@ -92,5 +87,5 @@ function broadcast(payload) {
 }
 
 server.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
+    console.log(`порт: ${PORT}`);
 });
