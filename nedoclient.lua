@@ -66,7 +66,7 @@ local function createGUI()
     messageList.CanvasSize = UDim2.new(0, 0, 0, 0)
     messageList.ScrollBarThickness = 6
     messageList.Parent = frame
-	messageList.ScrollingDirection = Enum.ScrollingDirection.X
+	messageList.ScrollingDirection = Enum.ScrollingDirection.Y
 
     local uiListLayout = Instance.new("UIListLayout")
     uiListLayout.Parent = messageList
