@@ -210,7 +210,7 @@ local function startChat()
     end)
 
     if success then
-        addMessage(messageList, "Подключение к чату успешно!", Color3.fromRGB(100, 255, 100)) --не факт
+        addMessage(messageList, "Подключение к чату успешно!", Color3.fromRGB(100, 255, 100))
     end
 
 end
