@@ -147,7 +147,7 @@ local function startChat()
     local player = Players.LocalPlayer
     local userId = player.UserId
     local playerName = player.Name
-    local lastMessageId = DateTime.now() 
+    local lastMessageId = DateTime.now().UnixTimestampMillis
 
     --показ сообщений
     local function sendMessage(text)
@@ -186,7 +186,7 @@ local function startChat()
                         lastMessageId = msg.id
                         local prefix, color
                         if msg.userId == "system" then
-                            prefix = "[Система]: "
+                            prefix = "🔹"
                             color = Color3.fromRGB(180, 180, 180)
                         else
                             prefix = "[" .. msg.name .. "]: "
@@ -200,7 +200,7 @@ local function startChat()
         end
     end)
 
-    addMessage(messageList, "Предупреждение: Этот чат работает на костылях и на бесплатном хостинге серверов, подключение может занять минуту...", Color3.fromRGB(128, 128, 128))
+    addMessage(messageList, "Чат работает на костылях и на бесплатном хостинге серверов, подключение может занять минуту...", Color3.fromRGB(128, 128, 128))
 
     successs,response = pcall(function()
         httpRequest(SERVER_URL .. "/join", "POST", {
