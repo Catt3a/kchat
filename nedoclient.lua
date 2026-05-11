@@ -44,6 +44,7 @@ local function createGUI()
     frame.Active = true
     frame.Draggable = true
     frame.Parent = screenGui
+	
 
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Name = "Title"
@@ -65,6 +66,7 @@ local function createGUI()
     messageList.CanvasSize = UDim2.new(0, 0, 0, 0)
     messageList.ScrollBarThickness = 6
     messageList.Parent = frame
+	messageList.ScrollingDirection = Enum.ScrollingDirection.X
 
     local uiListLayout = Instance.new("UIListLayout")
     uiListLayout.Parent = messageList
