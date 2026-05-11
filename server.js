@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 8080;
 const wss = new WebSocket.Server({ server, path: '/ws' });
 
 let messages = [];
-const MAX_MESSAGES = 100;
+const MAX_MESSAGES = 40;
 
 app.use(express.json());
 
@@ -20,11 +20,15 @@ app.get('/', (req, res) => {
 app.post('/send', (req, res) => {
     const { userId, name, text } = req.body;
     if (!userId || !name || !text) return res.status(400).json({ error: 'Missing fields' });
-    const msg = { id: Date.now(), userId, name, text, timestamp: new Date().toISOString() };
-    messages.push(msg);
-    if (messages.length > MAX_MESSAGES) messages.shift();
-    broadcast(JSON.stringify({ type: 'new_message', ...msg }));
-    res.json({ success: true });
+    if (text.length < 90) {
+        const msg = { id: Date.now(), userId, name, text, timestamp: new Date().toISOString() };
+        messages.push(msg);
+        if (messages.length > MAX_MESSAGES) messages.shift();
+        broadcast(JSON.stringify({ type: 'new_message', ...msg }));
+        res.json({ success: true });
+    }  else {
+        return res.status(400).json({ error: 'Слишком длинное сообщение' });
+    }
 });
 
 app.get('/messages', (req, res) => {
