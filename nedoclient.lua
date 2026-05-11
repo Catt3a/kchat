@@ -169,7 +169,7 @@ local function startChat()
             })
         end)
         if not ok then
-            addMessage(messageList, "Ошибка: " .. tostring(err) .. ", просто отправь кету, он разберётся", Color3.fromRGB(255, 100, 100))
+            addMessage(messageList, "Ошибка: " .. tostring(err), Color3.fromRGB(255, 100, 100))
         end
     end
 
