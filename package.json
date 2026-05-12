@@ -1,7 +1,7 @@
 {
   "name": "kchat-server",
   "version": "1.0.0",
-  "description": "WebSocket / HTTP chat server for Roblox",
+  "description": "Nasty Earwax",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
