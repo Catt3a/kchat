@@ -6,7 +6,7 @@ local CoreGui = game:GetService("CoreGui")
 local TextService = game:GetService("TextService")
 local SERVER_URL = "https://kchat-4uub.onrender.com" -- если ты сольёшь этот url роскомнадзору...
 local POLL_INTERVAL = 1.35  -- кд проверки сообщений
-
+local JobId = game.JobId
 
 local function httpRequest(url, method, body)
     local httpFunc = request or http_request
@@ -160,13 +160,14 @@ local function startChat()
     local playerName = player.Name
     local lastMessageId = DateTime.now().UnixTimestampMillis
 
-    --показ сообщений
+    --отправка сообщений
     local function sendMessage(text)
         local ok, err = pcall(function()
             return httpRequest(SERVER_URL .. "/send", "POST", {
                 userId = userId,
                 name = playerName,
-                text = text
+                text = text,
+                jobid = JobId,
             })
         end)
         if not ok then
@@ -174,7 +175,6 @@ local function startChat()
         end
     end
 
-    --отправка
     textBox.FocusLost:Connect(function(enterPressed)
         if enterPressed then
             local text = textBox.Text:match("^%s*(.-)%s*$")  -- обрезаем пробелы
@@ -189,7 +189,7 @@ local function startChat()
     spawn(function()
         while true do
             local ok, data = pcall(function()
-                return httpRequest(SERVER_URL .. "/messages?since=" .. tostring(lastMessageId), "GET")
+                return httpRequest(SERVER_URL .. "/messages?since=" .. tostring(lastMessageId) .. "&jobid=" .. JobId, "GET")
             end)
             if ok and data and data.messages then
                 for _, msg in ipairs(data.messages) do
