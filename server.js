@@ -33,9 +33,9 @@ app.post('/send', (req, res) => {
 });
 
 app.get('/messages', (req, res) => {
-    const { since1, jobid1 } = req.query;
-    const since = parseInt(since1) || 0;
-    const newMessages = messages.filter(m => m.id > since && m.jobid === jobid1);
+    const { since, jobid } = req.query;
+    const since1 = parseInt(since) || 0;
+    const newMessages = messages.filter(m => m.id > since1 && m.jobid === jobid);
     res.json({ messages: newMessages, serverTime: Date.now() });
 });
 
