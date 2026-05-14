@@ -1,5 +1,5 @@
 --я пидорас
---v1
+--v1.1
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
