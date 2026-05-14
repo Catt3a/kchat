@@ -9,7 +9,6 @@ const PORT = process.env.PORT || 8080;
 const wss = new WebSocket.Server({ server, path: '/ws' });
 
 let messages = [];
-let players = 0;
 const MAX_MESSAGES = 40;
 
 app.use(express.json());
@@ -19,10 +18,10 @@ app.get('/', (req, res) => {
 });
 
 app.post('/send', (req, res) => {
-    const { userId, name, text } = req.body;
-    if (!userId || !name || !text) return res.status(400).json({ error: 'Missing fields' });
+    const { userId, name, text, since, jobid } = req.body;
+    if (!userId || !name || !text || !since || !jobid) return res.status(400).json({ error: 'Missing fields' });
     if (text.length < 90) {
-        const msg = { id: Date.now(), userId, name, text, timestamp: new Date().toISOString() };
+        const msg = { id: Date.now(), userId, name, text, timestamp: new Date().toISOString(), jobid };
         messages.push(msg);
         if (messages.length > MAX_MESSAGES) messages.shift();
         broadcast(JSON.stringify({ type: 'new_message', ...msg }));
@@ -34,8 +33,9 @@ app.post('/send', (req, res) => {
 });
 
 app.get('/messages', (req, res) => {
-    const since = parseInt(req.query.since) || 0;
-    const newMessages = messages.filter(m => m.id > since);
+    const { since1, jobid1 } = req.query;
+    const since = parseInt(since1) || 0;
+    const newMessages = messages.filter(m => m.id > since && m.jobid === jobid1);
     res.json({ messages: newMessages, serverTime: Date.now() });
 });
 
@@ -50,41 +50,6 @@ app.post('/join', (req, res) => {
 });
 
 const clients = new Map();
-
-wss.on('connection', (ws, req) => {
-    ws.on('message', (data) => {
-        try {
-            const msg = JSON.parse(data);
-            if (msg.type === 'auth') {
-                clients.set(ws, { userId: msg.userId, name: msg.name });
-                const joinMsg = { id: Date.now(), userId: 'system', name: 'System', text: `${msg.name} присоединился`, timestamp: new Date().toISOString() };
-                messages.push(joinMsg);
-                broadcast(JSON.stringify({ type: 'new_message', ...joinMsg }));
-                players += 1;
-            } else if (msg.type === 'chat') {
-                const sender = clients.get(ws);
-                if (sender) {
-                    const chatMsg = { id: Date.now(), userId: sender.userId, name: sender.name, text: msg.text, timestamp: new Date().toISOString() };
-                    messages.push(chatMsg);
-                    broadcast(JSON.stringify({ type: 'new_message', ...chatMsg }));
-                }
-            }
-        } catch (e) {
-            console.error('ошибка:', e);
-        }
-    });
-
-    ws.on('close', () => {
-        const sender = clients.get(ws);
-        if (sender) {
-            const leaveMsg = { id: Date.now(), userId: 'system', name: 'System', text: `${sender.name} отключился`, timestamp: new Date().toISOString() };
-            messages.push(leaveMsg);
-            broadcast(JSON.stringify({ type: 'new_message', ...leaveMsg }));
-            clients.delete(ws);
-            players -= 1;
-        }
-    });
-});
 
 function broadcast(payload) {
     for (const [client] of clients) {
