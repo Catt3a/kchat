@@ -158,7 +158,7 @@ local function startChat()
     local player = Players.LocalPlayer
     local userId = player.UserId
     local playerName = player.Name
-    local lastMessageId = DateTime.now().UnixTimestampMillis
+    local lastMessageId = 0
 
     --отправка сообщений
     local function sendMessage(text)
