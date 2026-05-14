@@ -26,7 +26,7 @@ app.post('/send', (req, res) => {
         if (messages.length > MAX_MESSAGES) messages.shift();
         broadcast(JSON.stringify({ type: 'new_message', ...msg }));
         res.json({ success: true });
-        console.log(`${name}: ${text}`);
+        console.log(`${name}: ${text}, ${jobid}`);
     }  else {
         return res.status(400).json({ error: 'Слишком длинное сообщение' });
     }
