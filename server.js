@@ -9,6 +9,7 @@ const PORT = process.env.PORT || 8080;
 const wss = new WebSocket.Server({ server, path: '/ws' });
 
 let messages = [];
+let players = 0;
 const MAX_MESSAGES = 40;
 
 app.use(express.json());
@@ -59,6 +60,7 @@ wss.on('connection', (ws, req) => {
                 const joinMsg = { id: Date.now(), userId: 'system', name: 'System', text: `${msg.name} присоединился`, timestamp: new Date().toISOString() };
                 messages.push(joinMsg);
                 broadcast(JSON.stringify({ type: 'new_message', ...joinMsg }));
+                players += 1;
             } else if (msg.type === 'chat') {
                 const sender = clients.get(ws);
                 if (sender) {
@@ -79,6 +81,7 @@ wss.on('connection', (ws, req) => {
             messages.push(leaveMsg);
             broadcast(JSON.stringify({ type: 'new_message', ...leaveMsg }));
             clients.delete(ws);
+            players -= 1;
         }
     });
 });
