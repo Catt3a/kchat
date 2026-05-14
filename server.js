@@ -18,8 +18,8 @@ app.get('/', (req, res) => {
 });
 
 app.post('/send', (req, res) => {
-    const { userId, name, text, since, jobid } = req.body;
-    if (!userId || !name || !text || !since || !jobid) return res.status(400).json({ error: 'Missing fields' });
+    const { userId, name, text, jobid } = req.body;
+    if (!userId || !name || !text || !jobid) return res.status(400).json({ error: 'Missing fields' });
     if (text.length < 90) {
         const msg = { id: Date.now(), userId, name, text, timestamp: new Date().toISOString(), jobid };
         messages.push(msg);
